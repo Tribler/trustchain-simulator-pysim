@@ -40,9 +40,16 @@ def evaluate_round():
     # let peers crawl
     for peer in peers:
         crawl_peer = select_random_peer(peer)
-        start_seq = peer.database.get_lowest_sequence_number_unknown(crawl_peer.public_key.key_to_bin())
-        end_seq = start_seq + CRAWL_BATCH
-        crawl_peer.crawl(peer, start_seq, end_seq)
+        latest_block = peer.database.get_latest(crawl_peer.public_key.key_to_bin())
+
+        # Select random numbers
+        if latest_block and latest_block.sequence_number > 1:
+            start_seq = random.randint(1, latest_block.sequence_number - 1)
+        else:
+            start_seq = 1
+
+        #end_seq = start_seq + CRAWL_BATCH
+        crawl_peer.crawl(peer, start_seq, start_seq + 10)
 
 
 for peer_ind in range(1, NUM_PEERS + 1):

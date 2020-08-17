@@ -22,6 +22,7 @@ class TrustchainMemoryDatabase(object):
         self.kill_callback = None
         self.double_spends = []
         self.blocks = []
+        self.hash_map = {}
 
     def get_block_class(self, block_type):
         """

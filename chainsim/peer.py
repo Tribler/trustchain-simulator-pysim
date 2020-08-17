@@ -59,7 +59,7 @@ class Peer(object):
             # We exposed the peer that created the incoming block!
             exposed_peer = self.get_peer_with_pk(block.public_key)
             if exposed_peer:
-                self.logger.info("[Peer %d] exposed peer %d!", self.id, exposed_peer.id)
+                self.logger.warning("[Peer %d] exposed peer %d!", self.id, exposed_peer.id)
                 exposed_peer.exposed = self.round
 
         if validation.is_inconsistent and SHARE_INCONSISTENCIES and should_share and validation.state == ValidationResult.valid:
@@ -69,6 +69,12 @@ class Peer(object):
             pass
         elif not self.database.contains(block):
             self.database.add_block(block)
+
+        if (block.public_key, block.sequence_number) not in self.database.hash_map:
+            self.database.hash_map[(block.public_key, block.sequence_number)] = block.hash
+
+        if block.link_sequence_number != UNKNOWN_SEQ:
+            self.database.hash_map[block.link_public_key, block.link_sequence_number] = block.link_hash
 
         # Is this a request addressed at us?
         if (block.link_sequence_number != UNKNOWN_SEQ
