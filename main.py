@@ -2,13 +2,13 @@ import logging
 import random
 
 from chainsim.peer import Peer
-from chainsim.settings import NUM_PEERS, MAX_ROUNDS, RECORDS_PER_ROUND, CRAWL_BATCH
+from chainsim.settings import NUM_PEERS, MAX_ROUNDS, RECORDS_PER_ROUND, CRAWL_BATCH, CRAWLS_PER_ROUND
 from ipv8.keyvault.crypto import ECCrypto
 
 crypto = ECCrypto()
 peers = []
 
-lvl = logging.WARNING
+lvl = logging.ERROR
 logging.basicConfig(level=lvl)
 logger = logging.getLogger(__name__)
 logger.setLevel(lvl)
@@ -39,18 +39,18 @@ def evaluate_round():
 
     # let peers crawl
     for peer in peers:
-        crawl_peer = select_random_peer(peer)
-        latest_block = peer.database.get_latest(crawl_peer.public_key.key_to_bin())
+        for _ in range(CRAWLS_PER_ROUND):
+            crawl_peer = select_random_peer(peer)
+            latest_block = peer.database.get_latest(crawl_peer.public_key.key_to_bin())
 
-        # Select random numbers
-        if latest_block and latest_block.sequence_number > 1:
-            start_seq = random.randint(1, latest_block.sequence_number - 1)
-        else:
-            start_seq = 1
+            # Select random numbers
+            if latest_block and latest_block.sequence_number > 1:
+                start_seq = random.randint(1, latest_block.sequence_number - 1)
+            else:
+                start_seq = 1
 
-        #end_seq = start_seq + CRAWL_BATCH
-        crawl_peer.crawl(peer, start_seq, start_seq + 10)
-
+            #end_seq = start_seq + CRAWL_BATCH
+            crawl_peer.crawl(peer, start_seq, start_seq + 10)
 
 for peer_ind in range(1, NUM_PEERS + 1):
     keypair = crypto.generate_key("curve25519")

@@ -1,7 +1,7 @@
 import logging
 import random
 
-from chainsim.settings import FANOUT, SHARE_INCONSISTENCIES
+from chainsim.settings import FANOUT, SHARE_INCONSISTENCIES, NUM_CRAWL_RANDOM_BLOCKS
 from chainsim.trustchain_mem_db import TrustchainMemoryDatabase
 
 from ipv8.attestation.trustchain.block import TrustChainBlock, ValidationResult, UNKNOWN_SEQ, GENESIS_SEQ
@@ -72,6 +72,8 @@ class Peer(object):
 
         if (block.public_key, block.sequence_number) not in self.database.hash_map:
             self.database.hash_map[(block.public_key, block.sequence_number)] = block.hash
+            if block.sequence_number > 1:
+                self.database.hash_map[(block.public_key, block.sequence_number - 1)] = block.previous_hash
 
         if block.link_sequence_number != UNKNOWN_SEQ:
             self.database.hash_map[block.link_public_key, block.link_sequence_number] = block.link_hash
@@ -112,10 +114,10 @@ class Peer(object):
                 if last_block else GENESIS_SEQ
 
         blocks = self.database.crawl(self.public_key.key_to_bin(), start_seq_num, end_seq_num, limit=10)
-        # if self.settings.crawl_send_random_blocks > 0:
-        #     random_blocks = self.persistence.get_random_blocks(self.settings.crawl_send_random_blocks)
-        #     if random_blocks:
-        #         blocks.extend(random_blocks)
+        if NUM_CRAWL_RANDOM_BLOCKS > 0:
+            random_blocks = self.database.get_random_blocks(NUM_CRAWL_RANDOM_BLOCKS)
+            if random_blocks:
+                blocks.extend(random_blocks)
 
         for block in blocks:
             from_peer.process_incoming_block(self, block)
