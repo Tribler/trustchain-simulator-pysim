@@ -188,6 +188,18 @@ class TrustchainMemoryDatabase(object):
     def add_double_spend(self, blk1, blk2):
         self.double_spends.append((blk1, blk2))
 
+    def get_missing_blocks(self, public_key, latest_seq_num, num_missing):
+        """
+        Return missing blocks.
+        """
+        missing = []
+        for seq_num in range(1, latest_seq_num):
+            blk = self.get(public_key, seq_num)
+            if not blk:
+                missing.append(seq_num)
+
+        return random.sample(missing, min(num_missing, len(missing)))
+
     def close(self):
         if self.original_db:
             self.original_db.close()

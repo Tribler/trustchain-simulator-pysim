@@ -41,16 +41,20 @@ def evaluate_round():
     for peer in peers:
         for _ in range(CRAWLS_PER_ROUND):
             crawl_peer = select_random_peer(peer)
-            latest_block = peer.database.get_latest(crawl_peer.public_key.key_to_bin())
+            latest_block = crawl_peer.database.get_latest(crawl_peer.public_key.key_to_bin())
 
-            # Select random numbers
-            if latest_block and latest_block.sequence_number > 1:
-                start_seq = random.randint(1, latest_block.sequence_number - 1)
-            else:
-                start_seq = 1
+            # Select a random crawl range
+            # if latest_block and latest_block.sequence_number > 1:
+            #     start_seq = random.randint(1, latest_block.sequence_number - 1)
+            # else:
+            #     start_seq = 1
+            # crawl_peer.crawl(peer, start_seq, start_seq + 10)
 
-            #end_seq = start_seq + CRAWL_BATCH
-            crawl_peer.crawl(peer, start_seq, start_seq + 10)
+            if latest_block:
+                missing = peer.database.get_missing_blocks(crawl_peer.public_key.key_to_bin(), latest_block.sequence_number, CRAWL_BATCH)
+                for missing_seq_num in missing:
+                    crawl_peer.crawl(peer, missing_seq_num, missing_seq_num)
+
 
 for peer_ind in range(1, NUM_PEERS + 1):
     keypair = crypto.generate_key("curve25519")
