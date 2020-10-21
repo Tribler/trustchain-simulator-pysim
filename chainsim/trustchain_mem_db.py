@@ -11,7 +11,7 @@ class TrustchainMemoryDatabase(object):
     This class defines an optimized memory database for TrustChain.
     """
 
-    def __init__(self):
+    def __init__(self, env):
         self.block_cache = {}
         self.linked_block_cache = {}
         self.block_types = {}
@@ -23,6 +23,7 @@ class TrustchainMemoryDatabase(object):
         self.double_spends = []
         self.blocks = []
         self.hash_map = {}
+        self.env = env
 
     def get_block_class(self, block_type):
         """

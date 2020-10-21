@@ -1,85 +1,98 @@
-import logging
+import os
 import random
+import time
 
-from chainsim.peer import Peer
-from chainsim.settings import NUM_PEERS, MAX_ROUNDS, RECORDS_PER_ROUND, CRAWL_BATCH, CRAWLS_PER_ROUND
-from ipv8.keyvault.crypto import ECCrypto
+from simpy import Environment, Store
 
-crypto = ECCrypto()
-peers = []
+from chainsim.trustchain_mem_db import TrustchainMemoryDatabase
+from ipv8.attestation.trustchain.community import TrustChainCommunity
+from ipv8.attestation.trustchain.settings import TrustChainSettings
+from ipv8.keyvault.crypto import default_eccrypto
+from ipv8.peer import Peer
+from ipv8.peerdiscovery.network import Network
+from ipv8.test.mocking.endpoint import AutoMockEndpoint, internet
 
-lvl = logging.ERROR
-logging.basicConfig(level=lvl)
-logger = logging.getLogger(__name__)
-logger.setLevel(lvl)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-logger.addHandler(ch)
+nodes = []
 
 
-def select_random_peer(selecting_peer):
-    random_peer = random.choice(peers)
-    while random_peer == selecting_peer:
-        random_peer = random.choice(peers)
-    return random_peer
+env = Environment()
+NUM_PEERS = 100
 
 
-def evaluate_round():
-    for _ in range(RECORDS_PER_ROUND):
-        for peer in peers:
-            target_peer = select_random_peer(peer)
-            latest_block = peer.database.get_latest(peer.public_key.key_to_bin())
+class PySimEndpoint(AutoMockEndpoint):
 
-            double_spend = False
-            if random.random() <= 0.1 and not peer.did_double_spend and latest_block and latest_block.sequence_number > 1:
-                peer.did_double_spend = True
-                double_spend = True
+    def __init__(self, env):
+        super().__init__()
+        self.env = env
+        self.msg_queue = Store(env)
+        self.env.process(self.process_messages())
 
-            peer.record_interaction(target_peer, double_spend=double_spend)
+    def process_messages(self):
+        while True:
+            # Receive message
+            from_address, packet = yield self.msg_queue.get()
+            self.notify_listeners((from_address, packet))
 
-    # let peers crawl
-    for peer in peers:
-        for _ in range(CRAWLS_PER_ROUND):
-            crawl_peer = select_random_peer(peer)
-            latest_block = crawl_peer.database.get_latest(crawl_peer.public_key.key_to_bin())
+    def send(self, socket_address, packet):
+        if socket_address in internet:
+            # For the unit tests we handle messages in separate asyncio tasks to prevent infinite recursion.
+            ep = internet[socket_address]
+            ep.msg_queue.put((self.wan_address, packet))
+        else:
+            raise AssertionError("Received data from unregistered address %s" % repr(socket_address))
 
-            # Select a random crawl range
-            # if latest_block and latest_block.sequence_number > 1:
-            #     start_seq = random.randint(1, latest_block.sequence_number - 1)
-            # else:
-            #     start_seq = 1
-            # crawl_peer.crawl(peer, start_seq, start_seq + 10)
 
-            if latest_block:
-                missing = peer.database.get_missing_blocks(crawl_peer.public_key.key_to_bin(), latest_block.sequence_number, CRAWL_BATCH)
-                for missing_seq_num in missing:
-                    crawl_peer.crawl(peer, missing_seq_num, missing_seq_num)
+class SimulatedIPv8(object):
+
+    def __init__(self, env):
+        keypair = default_eccrypto.generate_key("curve25519")
+        self.network = Network()
+
+        self.endpoint = PySimEndpoint(env)
+        self.endpoint.open()
+
+        self.my_peer = Peer(keypair, self.endpoint.wan_address)
+
+        database = TrustchainMemoryDatabase(env)
+        settings = TrustChainSettings()
+        settings.broadcast_fanout = 10
+        self.overlay = TrustChainCommunity(self.my_peer, self.endpoint, self.network, persistence=database, settings=settings, env=env)
 
 
 for peer_ind in range(1, NUM_PEERS + 1):
-    keypair = crypto.generate_key("curve25519")
-    peer = Peer(peer_ind, keypair)
-    peers.append(peer)
-
-for peer in peers:
-    peer.set_peers(peers)
+    if peer_ind % 100 == 0:
+        print("Created %d peers..." % peer_ind)
+    ipv8 = SimulatedIPv8(env)
+    nodes.append(ipv8)
 
 
-for round_num in range(1, MAX_ROUNDS + 1):
-    evaluate_round()
+# Let nodes discover each other
+for node_a in nodes:
+    connect_nodes = random.sample(nodes, 20)
+    for node_b in connect_nodes:
+        if node_a == node_b:
+            continue
 
-    # Advance the round
-    for peer in peers:
-        peer.round = round_num
+        node_a.network.add_verified_peer(node_b.my_peer)
+        node_a.network.discover_services(node_b.my_peer, [node_a.overlay.master_peer.mid, ])
 
-    # Count the number of exposed peers
-    exposed = 0
-    did_double_spend = 0
-    for peer in peers:
-        if peer.exposed != -1:
-            exposed += 1
-        if peer.did_double_spend:
-            did_double_spend += 1
 
-    logger.error("Evaluated round %d... (double spended: %d/%d, exposed: %d/%d)" % (
-    round_num, did_double_spend, NUM_PEERS, exposed, NUM_PEERS))
+# Start crawling and creating interactions
+for node in nodes:
+    env.process(node.overlay.start_crawling())
+    env.process(node.overlay.create_random_interactions())
+
+
+if not os.path.exists("data"):
+    os.mkdir("data")
+
+
+if os.path.exists("data/detection_time.txt"):
+    os.remove("data/detection_time.txt")
+
+start_time = time.time()
+for second in range(1, 10):
+    env.run(until=second * 1000)
+    print("Simulated %d seconds..." % second)
+
+print("Simulation took %f seconds" % (time.time() - start_time))
