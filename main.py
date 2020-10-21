@@ -85,6 +85,7 @@ if __name__ == "__main__":
     parser.add_argument('--yappi', '-y', action='store_const', default=False, const=True, help='Run the Yappi profiler')
 
     args = parser.parse_args(sys.argv[1:])
+    NUM_PEERS = args.peers
 
     setup_directories()
     start_ipv8_nodes()
