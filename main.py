@@ -81,7 +81,7 @@ def start_simulation(run_yappi=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='TrustChain simulator')
-    parser.add_argument('--peers', '-p', action='store_const', default=100, const=True, help='The number of peers')
+    parser.add_argument('--peers', '-p', default=100, type=int, help='The number of peers')
     parser.add_argument('--yappi', '-y', action='store_const', default=False, const=True, help='Run the Yappi profiler')
 
     args = parser.parse_args(sys.argv[1:])
