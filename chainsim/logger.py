@@ -6,7 +6,7 @@ def setup_logger(name, log_file, level=None, mode='w', clean_up=False):
         logging.Logger.manager.loggerDict.clear()
 
     if not level:
-        level = logging.INFO
+        level = logging.ERROR
     formatter = logging.Formatter('%(name)s %(levelname)s %(message)s')
 
     handler = logging.FileHandler(log_file, mode=mode)

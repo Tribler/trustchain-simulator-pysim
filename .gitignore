@@ -1,3 +1,4 @@
 .idea/**
 chainsim/__pycache__/
 data/**
+logs/**
