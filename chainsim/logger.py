@@ -1,10 +1,7 @@
 import logging
 
 
-def setup_logger(name, log_file, level=None, mode='w', clean_up=False):
-    if clean_up:
-        logging.Logger.manager.loggerDict.clear()
-
+def setup_logger(name, log_file, level=None, mode='w'):
     if not level:
         level = logging.ERROR
     formatter = logging.Formatter('%(name)s %(levelname)s %(message)s')

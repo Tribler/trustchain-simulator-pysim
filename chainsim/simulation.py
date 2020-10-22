@@ -84,6 +84,10 @@ class TrustChainSimulation:
 
         self.write_bandwidth_statistics()
 
+        # Write total experiment duration
+        with open(os.path.join(self.data_dir, "duration.txt"), "w") as out_file:
+            out_file.write("%d" % self.env.now)
+
         print("Simulation took %f seconds" % (time.time() - start_time))
 
         if run_yappi:
