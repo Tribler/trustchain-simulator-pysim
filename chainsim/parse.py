@@ -1,7 +1,10 @@
-def parse_data():
+import os
+
+
+def parse_data(data_dir):
     # Parse the data
     lowest_times = {}
-    with open("data/detection_time.txt") as detect_time_file:
+    with open(os.path.join(data_dir, "detection_time.txt")) as detect_time_file:
         for line in detect_time_file.readlines():
             parts = line.strip().split(",")
             public_key = parts[0]
@@ -13,7 +16,7 @@ def parse_data():
             if detect_time < lowest_times[public_key]:
                 lowest_times[public_key] = detect_time
 
-    with open("data/fraud_time.txt") as fraud_time_file:
+    with open(os.path.join(data_dir, "fraud_time.txt")) as fraud_time_file:
         for line in fraud_time_file.readlines():
             parts = line.strip().split(",")
             public_key = parts[0]
@@ -24,7 +27,7 @@ def parse_data():
             else:
                 print("The fraud of peer %s is not detected!" % public_key)
 
-    with open("data/detect_times.txt", "w") as out_file:
+    with open(os.path.join(data_dir, "detect_times.txt"), "w") as out_file:
         for public_key, detect_time in lowest_times.items():
             out_file.write("%s,%d\n" % (public_key, detect_time))
 
@@ -34,7 +37,7 @@ def parse_data():
         avg_time += detect_time
     avg_time /= len(list(lowest_times.values()))
 
-    with open("data/avg_detect_time.txt", "w") as detect_time_file:
+    with open(os.path.join(data_dir, "avg_detect_time.txt"), "w") as detect_time_file:
         detect_time_file.write("%d" % avg_time)
 
     print("Parsing data done!")
