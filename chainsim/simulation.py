@@ -73,7 +73,7 @@ class TrustChainSimulation:
             yappi.start(builtins=True)
 
         start_time = time.time()
-        for second in range(1, 600 + 1):
+        for second in range(1, 3600 + 1):
             self.env.run(until=second * 1000)
 
             num_exposed = len(global_vars.exposed_peers)
