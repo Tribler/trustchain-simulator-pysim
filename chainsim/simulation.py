@@ -20,7 +20,7 @@ class TrustChainSimulation:
         self.settings = settings
         self.env = env
         self.nodes = []
-        self.data_dir = os.path.join("data", "n_%d_b_%d_link_%.1f_f_%d" % (self.settings.peers,
+        self.data_dir = os.path.join("data", "n_%d_b_%d_link_%.2f_f_%d" % (self.settings.peers,
                                                                            self.settings.back_pointers,
                                                                            self.settings.send_fail_probability,
                                                                            self.settings.broadcast_fanout))
