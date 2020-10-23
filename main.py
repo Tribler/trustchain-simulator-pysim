@@ -18,4 +18,4 @@ if __name__ == "__main__":
     sim_settings = SimulationSettings()
     sim_settings.peers = args.peers
     simulation = TrustChainSimulation(sim_settings, env)
-    simulation.run()
+    simulation.run(yappi=args.yappi)
