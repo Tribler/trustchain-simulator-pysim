@@ -3,13 +3,14 @@ import random
 import time
 from binascii import hexlify
 
-from ipv8.attestation.trustchain.block import TrustChainBlock
+from ipv8.attestation.trustchain.block import TrustChainBlock, UNKNOWN_SEQ
 
 
 class TrustchainMemoryDatabase(object):
     """
     This class defines an optimized memory database for TrustChain.
     """
+    blocks = {}
 
     def __init__(self, env):
         self.block_cache = {}
@@ -21,7 +22,7 @@ class TrustchainMemoryDatabase(object):
         self.block_file = None
         self.kill_callback = None
         self.double_spends = []
-        self.blocks = []
+        self.all_blocks = []
         self.hash_map = {}
         self.env = env
 
@@ -35,6 +36,9 @@ class TrustchainMemoryDatabase(object):
         return self.block_types[block_type]
 
     def add_block(self, block):
+        if block.hash not in TrustchainMemoryDatabase.blocks:
+            TrustchainMemoryDatabase.blocks[block.hash] = block
+
         self.block_cache[(block.public_key, block.sequence_number)] = block
         self.linked_block_cache[(block.link_public_key, block.link_sequence_number)] = block
 
@@ -44,10 +48,22 @@ class TrustchainMemoryDatabase(object):
             self.latest_blocks[block.public_key] = block
 
         self.block_time[(block.public_key, block.sequence_number)] = int(round(time.time() * 1000))
-        self.blocks.append(block)
+        self.all_blocks.append(block)
+
+        # Add the hash pointers to the map
+        if (block.public_key, block.sequence_number) not in self.hash_map:
+            self.hash_map[(block.public_key, block.sequence_number)] = block.hash
+            if block.sequence_number > 1:
+                self.hash_map[(block.public_key, block.sequence_number - 1)] = block.previous_hash
+
+        for seq_num, raw_hash in block.previous_hash_set:
+            self.hash_map[(block.public_key, seq_num)] = raw_hash
+
+        if block.link_sequence_number != UNKNOWN_SEQ:
+            self.hash_map[block.link_public_key, block.link_sequence_number] = block.link_hash
 
     def get_random_blocks(self, num_random_blocks):
-        return random.sample(self.blocks, min(len(self.blocks), num_random_blocks))
+        return random.sample(self.all_blocks, min(len(self.all_blocks), num_random_blocks))
 
     def remove_block(self, block):
         if self.latest_blocks[block.public_key] == block:
