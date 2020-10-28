@@ -45,7 +45,9 @@ class TrustChainSimulation:
                 if node_a == node_b:
                     continue
 
-                node_a.network.add_verified_peer(node_b.my_peer)
+                node_a.network.verified_peers.add(node_b.my_peer)
+                node_a.network.reverse_ip_lookup[node_b.my_peer.address] = node_b
+                node_b.network.reverse_ip_lookup[node_a.my_peer.address] = node_a
                 node_a.network.discover_services(node_b.my_peer, [node_a.overlay.master_peer.mid, ])
 
     def write_bandwidth_statistics(self):
