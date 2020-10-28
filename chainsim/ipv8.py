@@ -21,8 +21,22 @@ class SimulatedIPv8(object):
 
         database = TrustchainMemoryDatabase(env)
         settings = TrustChainSettings()
-        settings.broadcast_fanout = sim_settings.broadcast_fanout
         settings.crawl_batch_size = sim_settings.crawl_batch_size
+
+        # Adjust settings based on the strategy
+        if sim_settings.exchange_strategy == 0:
+            settings.broadcast_fanout = 0
+            settings.crawl_send_random_blocks = 0
+        elif sim_settings.exchange_strategy == 1:
+            settings.crawl_send_random_blocks = 5
+            settings.broadcast_fanout = 0
+        elif sim_settings.exchange_strategy == 2:
+            settings.crawl_send_random_blocks = 0
+            settings.broadcast_fanout = sim_settings.broadcast_fanout
+        elif sim_settings.exchange_strategy == 3:
+            settings.crawl_send_random_blocks = 5
+            settings.broadcast_fanout = sim_settings.broadcast_fanout
+
         self.overlay = TrustChainCommunity(self.my_peer, self.endpoint, self.network,
                                            persistence=database, settings=settings, env=env,
                                            sim_settings=sim_settings, data_dir=data_dir)

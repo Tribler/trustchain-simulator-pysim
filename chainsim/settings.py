@@ -11,3 +11,10 @@ class SimulationSettings:
     crawl_interval = 0.5
     max_duration = 600
     send_fail_probability = 0
+
+    # We define different broadcast strategies
+    # 0 = PULL
+    # 1 = PULL + RAND
+    # 2 = PULL + PUSH
+    # 3 = PULL + RAND + PUSH
+    exchange_strategy = 3
