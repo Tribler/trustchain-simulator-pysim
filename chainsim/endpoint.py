@@ -15,12 +15,34 @@ class PySimEndpoint(AutoMockEndpoint):
         self.bytes_up = 0
         self.bytes_down = 0
         self.send_fail_probability = send_fail_probability
+        self.overlay = None
 
     def process_messages(self):
         while True:
             from_address, packet = yield self.msg_queue.get()
             self.bytes_down += len(packet)
             self.notify_listeners((from_address, packet))
+
+    def pass_payload(self, from_peer, socket_address, msg_id, payload):
+        endpoint = internet[socket_address]
+        if msg_id == 1:  # Half block payload
+            # TODO bytes up!
+            endpoint.overlay.process_half_block_payload(from_peer, payload)
+        elif msg_id == 2:  # Crawl request
+            self.bytes_up += 257
+            endpoint.overlay.process_crawl_request(from_peer, payload)
+        elif msg_id == 3:  # Crawl response
+            # TODO bytes up!
+            endpoint.overlay.process_crawl_response_payload(from_peer, payload)
+        elif msg_id == 4:  # Half block pair payload
+            # TODO bytes up!
+            endpoint.overlay.process_half_block_pair_payload(payload)
+        elif msg_id == 5:  # Half block broadcast payload
+            # TODO bytes up!
+            endpoint.overlay.process_half_block_broadcast_payload(payload)
+        elif msg_id == 6:  # Half block pair broadcast payload
+            # TODO bytes up!
+            endpoint.overlay.process_half_block_pair_payload(payload)
 
     def send(self, socket_address, packet):
         if socket_address in internet:

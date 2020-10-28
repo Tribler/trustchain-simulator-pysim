@@ -9,5 +9,5 @@ class SimulationSettings:
     broadcast_fanout = 10
     crawl_batch_size = 5
     crawl_interval = 0.5
-    max_duration = 600
+    max_duration = 3
     send_fail_probability = 0

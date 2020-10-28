@@ -26,3 +26,4 @@ class SimulatedIPv8(object):
         self.overlay = TrustChainCommunity(self.my_peer, self.endpoint, self.network,
                                            persistence=database, settings=settings, env=env,
                                            sim_settings=sim_settings, data_dir=data_dir)
+        self.endpoint.overlay = self.overlay
