@@ -20,11 +20,12 @@ if __name__ == "__main__":
             settings = SimulationSettings()
             settings.peers = 1000
             settings.back_pointers = num_back_pointers
+            settings.exchange_strategy = strategy
             p = Process(target=run, args=(settings,))
             p.start()
             processes.append(p)
 
-            for p in processes:
-                p.join()
+        for p in processes:
+            p.join()
 
         print("Fully evaluated strategy %d!" % strategy)
