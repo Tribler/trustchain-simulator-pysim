@@ -14,7 +14,7 @@ class SimulatedIPv8(object):
         keypair = default_eccrypto.generate_key("curve25519")
         self.network = Network()
 
-        self.endpoint = PySimEndpoint(env, sim_settings.send_fail_probability)
+        self.endpoint = PySimEndpoint(env, sim_settings)
         self.endpoint.open()
 
         self.my_peer = Peer(keypair, self.endpoint.wan_address)

@@ -7,14 +7,15 @@ from ipv8.test.mocking.endpoint import AutoMockEndpoint, internet
 
 class PySimEndpoint(AutoMockEndpoint):
 
-    def __init__(self, env, send_fail_probability):
+    def __init__(self, env, settings):
         super().__init__()
         self.env = env
         self.msg_queue = Store(env)
         self.env.process(self.process_messages())
         self.bytes_up = 0
         self.bytes_down = 0
-        self.send_fail_probability = send_fail_probability
+        self.settings = settings
+        self.send_fail_probability = settings.send_fail_probability
         self.overlay = None
 
     def process_messages(self):
@@ -29,22 +30,24 @@ class PySimEndpoint(AutoMockEndpoint):
             return
 
         if msg_id == 1:  # Half block payload
-            # TODO bytes up!
+            msg_len = 365 + 32 * len(payload.previous_hash_set)
+            self.bytes_up += msg_len
+            endpoint.bytes_down += msg_len
             endpoint.overlay.process_half_block_payload(from_peer, payload)
         elif msg_id == 2:  # Crawl request
-            self.bytes_up += 257
+            msg_len = 257
+            self.bytes_up += msg_len
+            endpoint.bytes_down += msg_len
             endpoint.overlay.process_crawl_request(from_peer, payload)
         elif msg_id == 3:  # Crawl response
-            # TODO bytes up!
+            msg_len = 379 + 32 * len(payload.block.previous_hash_set)
+            self.bytes_up += msg_len
+            endpoint.bytes_down += msg_len
             endpoint.overlay.process_crawl_response_payload(from_peer, payload)
         elif msg_id == 4:  # Half block pair payload
-            # TODO bytes up!
-            endpoint.overlay.process_half_block_pair_payload(payload)
-        elif msg_id == 5:  # Half block broadcast payload
-            # TODO bytes up!
-            endpoint.overlay.process_half_block_broadcast_payload(payload)
-        elif msg_id == 6:  # Half block pair broadcast payload
-            # TODO bytes up!
+            msg_len = 707 + 32 * len(payload.previous_hash_set1) + 32 * len(payload.previous_hash_set2)
+            self.bytes_up += msg_len
+            endpoint.bytes_down += msg_len
             endpoint.overlay.process_half_block_pair_payload(payload)
 
     def send(self, socket_address, packet):
