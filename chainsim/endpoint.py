@@ -25,6 +25,9 @@ class PySimEndpoint(AutoMockEndpoint):
 
     def pass_payload(self, from_peer, socket_address, msg_id, payload):
         endpoint = internet[socket_address]
+        if random.random() <= self.send_fail_probability:
+            return
+
         if msg_id == 1:  # Half block payload
             # TODO bytes up!
             endpoint.overlay.process_half_block_payload(from_peer, payload)
