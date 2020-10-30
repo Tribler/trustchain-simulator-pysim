@@ -35,7 +35,7 @@ if __name__ == "__main__":
         for num_peers in [7000, 8000]:
             settings = SimulationSettings()
             settings.peers = num_peers
-            settings.exchange_strategy = strategy
+            settings.workload = workload
             p = Process(target=run, args=(settings,))
             p.start()
             processes.append(p)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         for num_peers in [9000, 10000]:
             settings = SimulationSettings()
             settings.peers = num_peers
-            settings.exchange_strategy = strategy
+            settings.workload = workload
             p = Process(target=run, args=(settings,))
             p.start()
             processes.append(p)
@@ -58,4 +58,4 @@ if __name__ == "__main__":
         for p in processes:
             p.join()
 
-        print("Fully evaluated strategy %d!" % strategy)
+        print("Fully evaluated workload %d!" % workload)
