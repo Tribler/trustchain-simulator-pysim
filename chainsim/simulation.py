@@ -20,11 +20,12 @@ class TrustChainSimulation:
         self.settings = settings
         self.env = env
         self.nodes = []
-        self.data_dir = os.path.join("data", "n_%d_b_%d_link_%.2f_f_%d_s_%d" % (self.settings.peers,
-                                                                                self.settings.back_pointers,
-                                                                                self.settings.send_fail_probability,
-                                                                                self.settings.broadcast_fanout,
-                                                                                self.settings.exchange_strategy))
+        self.data_dir = os.path.join("data", "n_%d_b_%d_link_%.2f_f_%d_s_%d_w_%d" % (self.settings.peers,
+                                                                                     self.settings.back_pointers,
+                                                                                     self.settings.send_fail_probability,
+                                                                                     self.settings.broadcast_fanout,
+                                                                                     self.settings.exchange_strategy,
+                                                                                     self.settings.workload))
 
     def start_ipv8_nodes(self):
         for peer_ind in range(1, self.settings.peers + 1):
