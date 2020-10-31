@@ -30,7 +30,7 @@ class PySimEndpoint(AutoMockEndpoint):
             return
 
         if msg_id == 1:  # Half block payload
-            msg_len = 365 + 32 * len(payload.previous_hash_set)
+            msg_len = 365 + len(payload.previous_hash_set)
             self.bytes_up += msg_len
             endpoint.bytes_down += msg_len
             endpoint.overlay.process_half_block_payload(from_peer, payload)
@@ -40,12 +40,12 @@ class PySimEndpoint(AutoMockEndpoint):
             endpoint.bytes_down += msg_len
             endpoint.overlay.process_crawl_request(from_peer, payload)
         elif msg_id == 3:  # Crawl response
-            msg_len = 379 + 32 * len(payload.block.previous_hash_set)
+            msg_len = 379 + len(payload.block.previous_hash_set)
             self.bytes_up += msg_len
             endpoint.bytes_down += msg_len
             endpoint.overlay.process_crawl_response_payload(from_peer, payload)
         elif msg_id == 4:  # Half block pair payload
-            msg_len = 707 + 32 * len(payload.previous_hash_set1) + 32 * len(payload.previous_hash_set2)
+            msg_len = 707 + len(payload.previous_hash_set1) + len(payload.previous_hash_set2)
             self.bytes_up += msg_len
             endpoint.bytes_down += msg_len
             endpoint.overlay.process_half_block_pair_payload(payload)
