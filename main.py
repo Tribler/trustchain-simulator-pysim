@@ -17,7 +17,8 @@ if __name__ == "__main__":
     env = Environment()
 
     sim_settings = SimulationSettings()
-    sim_settings.peers = args.peers
+    sim_settings.peers = 1000
+    sim_settings.exchange_strategy = 0
     sim_settings.send_fail_probability = args.send_fail_probability
     simulation = TrustChainSimulation(sim_settings, env)
     simulation.run(yappi=args.yappi)

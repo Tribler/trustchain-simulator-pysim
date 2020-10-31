@@ -68,6 +68,15 @@ class TrustChainSimulation:
         with open(os.path.join(self.data_dir, "total_bandwidth.csv"), "w") as bw_file:
             bw_file.write("%d,%d" % (total_bytes_up, total_bytes_down))
 
+    def get_bandwidth_stats(self):
+        total_bytes_up = 0
+        total_bytes_down = 0
+        for node in self.nodes:
+            total_bytes_up += node.endpoint.bytes_up
+            total_bytes_down += node.endpoint.bytes_down
+
+        return total_bytes_up, total_bytes_down
+
     def start_simulation(self, run_yappi=False):
         # Start crawling and creating interactions
         for node in self.nodes:
@@ -83,9 +92,12 @@ class TrustChainSimulation:
         for second in range(1, self.settings.max_duration + 1):
             self.env.run(until=second * 1000)
 
+            # Determine total experiment bandwidth
+            bw_stats = self.get_bandwidth_stats()
+
             num_exposed = len(global_vars.exposed_peers)
-            print("Simulated %d seconds... (peers that committed fraud: %d, exposed: %d)" % (
-            second, global_vars.peers_committed_fraud, num_exposed))
+            print("Simulated %d seconds... (peers that committed fraud: %d, exposed: %d, bytes up: %d, bytes down: %d)" % (
+            second, global_vars.peers_committed_fraud, num_exposed, bw_stats[0], bw_stats[1]))
             if num_exposed == self.settings.peers:
                 break
 

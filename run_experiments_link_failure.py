@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     for strategy in [0, 1, 2, 3]:
         processes = []
-        for link_failure in range(0, 20, 2):
+        for link_failure in range(0, 22, 2):
             settings = SimulationSettings()
             settings.peers = 1000
             settings.send_fail_probability = link_failure / 100
