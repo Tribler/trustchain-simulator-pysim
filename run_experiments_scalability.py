@@ -18,7 +18,6 @@ if __name__ == "__main__":
 
     print("Going to evaluate strategy %d" % strategy)
 
-    # Batch 1
     processes = []
     for num_peers in range(1000, 11000, 1000):
         print("Evaluating %d peers..." % num_peers)
@@ -28,8 +27,6 @@ if __name__ == "__main__":
         p = Process(target=run, args=(settings,))
         p.start()
         processes.append(p)
-
-    for p in processes:
         p.join()
 
     print("Fully evaluated strategy %d!" % strategy)
