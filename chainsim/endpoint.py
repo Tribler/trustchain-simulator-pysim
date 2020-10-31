@@ -14,6 +14,7 @@ class PySimEndpoint(AutoMockEndpoint):
         self.env.process(self.process_messages())
         self.bytes_up = 0
         self.bytes_down = 0
+        self.num_msg_received = {1: 0, 2: 0, 3: 0, 4: 0}
         self.settings = settings
         self.send_fail_probability = settings.send_fail_probability
         self.overlay = None
@@ -29,13 +30,15 @@ class PySimEndpoint(AutoMockEndpoint):
         if random.random() <= self.send_fail_probability:
             return
 
+        endpoint.num_msg_received[msg_id] += 1
+
         if msg_id == 1:  # Half block payload
             msg_len = 365 + len(payload.previous_hash_set)
             self.bytes_up += msg_len
             endpoint.bytes_down += msg_len
             endpoint.overlay.process_half_block_payload(from_peer, payload)
         elif msg_id == 2:  # Crawl request
-            msg_len = 257
+            msg_len = 99
             self.bytes_up += msg_len
             endpoint.bytes_down += msg_len
             endpoint.overlay.process_crawl_request(from_peer, payload)
