@@ -10,7 +10,7 @@ from ipv8.peerdiscovery.network import Network
 
 class SimulatedIPv8(object):
 
-    def __init__(self, sim_settings, env, data_dir):
+    def __init__(self, sim_settings, env, scenario, data_dir, peer_id):
         keypair = default_eccrypto.generate_key("curve25519")
         self.network = Network()
 
@@ -39,5 +39,5 @@ class SimulatedIPv8(object):
 
         self.overlay = TrustChainCommunity(self.my_peer, self.endpoint, self.network,
                                            persistence=database, settings=settings, env=env,
-                                           sim_settings=sim_settings, data_dir=data_dir)
+                                           sim_settings=sim_settings, scenario=scenario, data_dir=data_dir, peer_id=peer_id)
         self.endpoint.overlay = self.overlay

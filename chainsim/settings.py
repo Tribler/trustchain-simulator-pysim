@@ -17,10 +17,13 @@ class SimulationSettings:
     # 1 = PULL + RAND
     # 2 = PULL + PUSH
     # 3 = PULL + RAND + PUSH
-    exchange_strategy = 3
+    exchange_strategy = 0
 
     # We define different workloads
     # 0 = every peer creates one tx per second
     # 1 = the time between two transactions is uniformly picked from [0, 2]
     # 2 = the time between two transactions is normally distributed with mean 1 and std. dev 0.3
     workload = 0
+
+    # Optionally, one can provide a scenario file, containing an interaction on every one.
+    scenario_file = None

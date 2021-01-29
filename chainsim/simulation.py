@@ -9,6 +9,7 @@ import yappi
 import chainsim.globals as global_vars
 from chainsim.ipv8 import SimulatedIPv8
 from chainsim.parse import parse_data
+from chainsim.scenario import Scenario
 
 
 class TrustChainSimulation:
@@ -20,6 +21,16 @@ class TrustChainSimulation:
         self.settings = settings
         self.env = env
         self.nodes = []
+        self.scenario = None
+
+        # If we provided a scenario file, we have to change a few settings, e.g., the number of peers
+        if settings.scenario_file:
+            self.scenario = Scenario(settings.scenario_file)
+            self.scenario.parse()
+            self.settings.peers = self.scenario.num_peers
+            self.settings.max_duration = self.scenario.max_timestamp // 1000 + 600
+            print("Running scenario file until %d seconds" % self.settings.max_duration)
+
         self.data_dir = os.path.join("data", "n_%d_b_%d_link_%.2f_f_%d_s_%d_w_%d" % (self.settings.peers,
                                                                                      self.settings.back_pointers,
                                                                                      self.settings.send_fail_probability,
@@ -28,11 +39,16 @@ class TrustChainSimulation:
                                                                                      self.settings.workload))
 
     def start_ipv8_nodes(self):
+        peer_id_to_peer = {}
         for peer_ind in range(1, self.settings.peers + 1):
             if peer_ind % 100 == 0:
                 print("Created %d peers..." % peer_ind)
-            ipv8 = SimulatedIPv8(self.settings, self.env, self.data_dir)
+            ipv8 = SimulatedIPv8(self.settings, self.env, self.scenario, self.data_dir, peer_ind)
+            peer_id_to_peer[peer_ind] = ipv8.my_peer
             self.nodes.append(ipv8)
+
+        for node in self.nodes:
+            node.overlay.peer_id_to_peer = peer_id_to_peer
 
     def setup_directories(self):
         if os.path.exists(self.data_dir):
@@ -81,7 +97,10 @@ class TrustChainSimulation:
         # Start crawling and creating interactions
         for node in self.nodes:
             self.env.process(node.overlay.start_crawling())
-            self.env.process(node.overlay.create_random_interactions())
+            if self.settings.scenario_file:
+                self.env.process(node.overlay.start_scenario())
+            else:
+                self.env.process(node.overlay.create_random_interactions())
 
         print("Starting simulation with %d peers..." % self.settings.peers)
 
