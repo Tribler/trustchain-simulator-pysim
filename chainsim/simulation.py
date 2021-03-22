@@ -31,12 +31,14 @@ class TrustChainSimulation:
             self.settings.max_duration = self.scenario.max_timestamp // 1000 + 600
             print("Running scenario file until %d seconds" % self.settings.max_duration)
 
-        self.data_dir = os.path.join("data", "n_%d_b_%d_link_%.2f_f_%d_s_%d_w_%d" % (self.settings.peers,
-                                                                                     self.settings.back_pointers,
-                                                                                     self.settings.send_fail_probability,
-                                                                                     self.settings.broadcast_fanout,
-                                                                                     self.settings.exchange_strategy,
-                                                                                     self.settings.workload))
+        self.data_dir = os.path.join("data", "n_%d_b_%d_link_%.2f_f_%d_s_%d_w_%d_ci_%s_cbs_%d" % (self.settings.peers,
+                                                                                                  self.settings.back_pointers,
+                                                                                                  self.settings.send_fail_probability,
+                                                                                                  self.settings.broadcast_fanout,
+                                                                                                  self.settings.exchange_strategy,
+                                                                                                  self.settings.workload,
+                                                                                                  self.settings.crawl_interval,
+                                                                                                  self.settings.crawl_batch_size))
 
     def start_ipv8_nodes(self):
         peer_id_to_peer = {}
